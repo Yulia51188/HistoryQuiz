@@ -19,6 +19,7 @@ import os
 import random
 
 from dotenv import load_dotenv
+from functools import partial
 from parse_questions import parse_questions
 from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
@@ -63,12 +64,18 @@ def error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"', update, error)
 
 
-def answer(bot, update):
+def answer(bot, update, db):
     if update.message.text == 'Новый вопрос':
-        update.message.reply_text(get_random_question()["question"])
+        new_question = get_random_question()
+        update.message.reply_text(new_question["question"])
+        db.set(update.message.chat_id, new_question["question"])
+        logger.info(db.get(update.message.chat_id))
 
 
-def run_echobot(bot_token):
+def run_echobot(bot_token, db_host, db_port, db_password):
+    redis_db = redis.Redis(host=db_host, port=db_port, db=0, 
+        password=db_password, decode_responses=True)
+
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(bot_token)
 
@@ -80,7 +87,13 @@ def run_echobot(bot_token):
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("stop", stop))
     # on noncommand i.e message - echo the message on Telegram
-    dp.add_handler(MessageHandler(Filters.text, answer))
+    dp.add_handler(MessageHandler(
+        Filters.text, 
+        partial(
+                answer, 
+                db=redis_db
+            )
+    ))
 
     # log all errors
     dp.add_error_handler(error)
@@ -117,7 +130,10 @@ def get_random_question(file_path='Data/test.txt'):
 def main():
     load_dotenv()
     bot_token = os.getenv("TOKEN")
-    run_echobot(bot_token)
+    db_host = os.getenv("DB_HOST")
+    db_port = os.getenv("DB_PORT")
+    db_password = os.getenv("DB_PASSWORD")
+    run_echobot(bot_token, db_host, db_port, db_password)
 
 
 
