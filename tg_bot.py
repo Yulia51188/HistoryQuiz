@@ -47,10 +47,7 @@ def error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"', update, error)
 
 
-def main():
-    load_dotenv()
-    bot_token = os.getenv("TOKEN")
-    """Start the bot."""
+def run_echobot(bot_token):
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(bot_token)
 
@@ -74,6 +71,13 @@ def main():
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
+
+
+def main():
+    load_dotenv()
+    bot_token = os.getenv("TOKEN")
+    run_echobot(bot_token)
+
 
 
 if __name__ == '__main__':
