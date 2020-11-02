@@ -3,7 +3,7 @@ import logging
 
 logger = logging.getLogger('quiz_bot_logger')
 logging.basicConfig(format='%(message)s',
-                    level=logging.DEBUG)
+                    level=logging.INFO)
 
 def parse_questions(file_path):
     with open(file_path, 'r', encoding='koi8-r') as file_obj:
@@ -13,11 +13,10 @@ def parse_questions(file_path):
     quiz = []
     for part in text_parts[1:]:
         subparts = part.split('\n\n')
-        logger.debug(subparts)
         if len(subparts) > 1:
             quiz.append({
-                'question': subparts[0].split(':')[1],
-                'answer': subparts[1].split(':')[1],
+                'question': subparts[0].split(':\n')[1],
+                'answer': subparts[1].split(':\n')[1],
             })
 
     for part in quiz:
