@@ -18,6 +18,8 @@ import os
 
 import random
 
+import re
+
 from dotenv import load_dotenv
 from functools import partial
 from parse_questions import parse_questions
@@ -35,13 +37,14 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger('quiz_bot_logger')
 
+TRUE_RESPONSE = "Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»"
+FALSE_RESPONSE = "Неправильно... Попробуешь ещё раз?"
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
 def start(bot, update):
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!')
-    send_keyboard(bot, update.message.chat_id)
+    send_keyboard(bot, update.message.chat_id, 'Начинаем викторину!')
 
 
 def stop(bot, update):
@@ -64,12 +67,46 @@ def error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"', update, error)
 
 
+def validate_answer(full_answer, user_msg):
+    if user_msg.lower() == full_answer.lower():
+        return True
+    elif len(user_msg) < 1:
+        return
+    else:
+        clean_answer = re.sub('[."\n]', '', full_answer.lower())
+        logger.debug(clean_answer)
+        answer = re.sub(" \([^)]*\)", '', clean_answer)
+        answer = re.sub(" \[[^)]*\]", '', answer)
+        user_answer = user_msg.replace('.', '').lower()
+        logger.info(f"{answer} == {user_answer}")
+        return answer == user_answer
+
+
 def answer(bot, update, db):
     if update.message.text == 'Новый вопрос':
         new_question = get_random_question()
-        update.message.reply_text(new_question["question"])
-        db.set(update.message.chat_id, new_question["question"])
-        logger.info(db.get(update.message.chat_id))
+        bot_response = new_question["question"]
+        db.set(
+            update.message.chat_id, 
+            new_question["answer"]
+        )
+        logger.info(f"QUIZ ITEM SET:\n{db.get(update.message.chat_id)}")
+
+    elif update.message.text == 'Сдаться':
+        bot_response = 'Жаль'
+        pass
+    elif update.message.text == 'Мой счёт':
+        bot_response = 'Твой счёт 0'
+        pass
+    else:
+        quiz_item = db.get(update.message.chat_id)
+        logger.info(f"QUIZ ITEM GET:\n{quiz_item}")
+        
+        is_answer_true = validate_answer(quiz_item,  update.message.text)
+        bot_response = is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE
+        
+        # update.message.reply_text(bot_response)
+    send_keyboard(bot, update.message.chat_id, bot_response)
 
 
 def run_echobot(bot_token, db_host, db_port, db_password):
@@ -107,10 +144,10 @@ def run_echobot(bot_token, db_host, db_port, db_password):
     updater.idle()
 
 
-def send_keyboard(bot, chat_id):
+def send_keyboard(bot, chat_id, text):
     custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Мой счёт']]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard)
-    bot.send_message(chat_id=chat_id, text="Начинаем викторину!", 
+    bot.send_message(chat_id=chat_id, text=text, 
         reply_markup=reply_markup)
 
 
@@ -134,6 +171,7 @@ def main():
     db_port = os.getenv("DB_PORT")
     db_password = os.getenv("DB_PASSWORD")
     run_echobot(bot_token, db_host, db_port, db_password)
+    # print(validate_answer("Голубь и овца (агнец).", "голубь и овца"))
 
 
 
