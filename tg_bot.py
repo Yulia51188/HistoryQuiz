@@ -94,6 +94,14 @@ def handle_my_points_request(bot, update):
     return States.MENU_BUTTON_CLICK
 
 
+def handle_dont_know_request(bot, update, db):
+    quiz_item = db.get(update.message.chat_id)
+    bot.send_message(chat_id=update.message.chat_id, 
+        text=f'Правильный ответ: {quiz_item}.\nДавай попробуем еще!')
+    handle_new_question_request(bot, update, db)
+    return States.ANSWER
+
+
 def send_keyboard(bot, chat_id, text):
     custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Мой счёт']]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard)
@@ -130,10 +138,12 @@ def run_bot(bot_token, db_host, db_port, db_password):
                 RegexHandler('^Мой счёт$', 
                     handle_my_points_request),
                 ],
-            States.ANSWER: [MessageHandler(
-                Filters.text, 
-                partial(handle_solution_attempt, db=redis_db)
-            )],
+            States.ANSWER: [
+                    RegexHandler('^Сдаться$', 
+                        partial(handle_dont_know_request, db=redis_db)),
+                    MessageHandler(Filters.text, 
+                        partial(handle_solution_attempt, db=redis_db)),
+                ],
         },
         fallbacks=[CommandHandler('stop', stop)]
     )
