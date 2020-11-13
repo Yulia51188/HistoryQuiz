@@ -66,8 +66,8 @@ def validate_answer(full_answer, user_msg):
         return answer == user_answer
 
 
-def handle_new_question_request(bot, update, db):
-    new_question = get_random_question()
+def handle_new_question_request(bot, update, db, quiz):
+    new_question = get_random_question(quiz)
     bot_response = new_question["question"]
     send_keyboard(bot, update.message.chat_id, bot_response)    
     db.set(
@@ -78,7 +78,7 @@ def handle_new_question_request(bot, update, db):
     return States.ANSWER
 
 
-def handle_solution_attempt(bot, update, db):
+def handle_solution_attempt(bot, update, db, quiz):
     quiz_item = db.get(update.message.chat_id)
     logger.info(f"QUIZ ITEM GET:\n{quiz_item}")
         
@@ -94,11 +94,11 @@ def handle_my_points_request(bot, update):
     return States.MENU_BUTTON_CLICK
 
 
-def handle_dont_know_request(bot, update, db):
+def handle_dont_know_request(bot, update, db, quiz):
     quiz_item = db.get(update.message.chat_id)
     bot.send_message(chat_id=update.message.chat_id, 
-        text=f'Правильный ответ: {quiz_item}.\nДавай попробуем еще!')
-    handle_new_question_request(bot, update, db)
+        text=f'Правильный ответ: {quiz_item}\nДавай попробуем еще!')
+    handle_new_question_request(bot, update, db, quiz)
     return States.ANSWER
 
 
@@ -115,34 +115,33 @@ def remove_keyboard(bot, chat_id):
         reply_markup=reply_markup)
 
 
-def get_random_question(file_path='Data/test.txt'):
-    quiz = parse_questions(file_path)
+def get_random_question(quiz):   
     question = random.choice(quiz)
     logger.info(question)
     return(question)
 
 
-def run_bot(bot_token, db_host, db_port, db_password):
+def run_bot(bot_token, db_host, db_port, db_password, file_path='Data/test.txt'):
     redis_db = redis.Redis(host=db_host, port=db_port, db=0, 
         password=db_password, decode_responses=True)
+    quiz = parse_questions(file_path)
 
     updater = Updater(bot_token)
     dp = updater.dispatcher
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
-
         states={
             States.MENU_BUTTON_CLICK: [
                 RegexHandler('^Новый вопрос$', 
-                    partial(handle_new_question_request, db=redis_db)),
+                    partial(handle_new_question_request, db=redis_db, quiz=quiz)),
                 RegexHandler('^Мой счёт$', 
                     handle_my_points_request),
                 ],
             States.ANSWER: [
                     RegexHandler('^Сдаться$', 
-                        partial(handle_dont_know_request, db=redis_db)),
+                        partial(handle_dont_know_request, db=redis_db, quiz=quiz)),
                     MessageHandler(Filters.text, 
-                        partial(handle_solution_attempt, db=redis_db)),
+                        partial(handle_solution_attempt, db=redis_db, quiz=quiz)),
                 ],
         },
         fallbacks=[CommandHandler('stop', stop)]
