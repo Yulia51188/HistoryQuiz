@@ -156,7 +156,7 @@ def run_bot(bot_token, db_host, db_port, db_password, file_path='Data/test.txt')
 
 def main():
     load_dotenv()
-    bot_token = os.getenv("TOKEN")
+    bot_token = os.getenv("TG_TOKEN")
     db_host = os.getenv("DB_HOST")
     db_port = os.getenv("DB_PORT")
     db_password = os.getenv("DB_PASSWORD")
