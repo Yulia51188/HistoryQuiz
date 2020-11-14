@@ -3,14 +3,16 @@
 
 import logging
 import os
-import random
-import re
 import redis
 
 from dotenv import load_dotenv
-from enum import Enum
 from functools import partial
+from parse_questions import FALSE_RESPONSE
+from parse_questions import States
+from parse_questions import TRUE_RESPONSE
+from parse_questions import get_random_question
 from parse_questions import parse_questions
+from parse_questions import validate_answer
 from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from telegram.ext import CommandHandler
@@ -21,25 +23,15 @@ from telegram.ext import RegexHandler
 from telegram.ext import Updater
 
 
-class States(Enum):
-    MENU_BUTTON_CLICK = 1
-    ANSWER = 2
-
-
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
 logger = logging.getLogger('quiz_bot_logger')
 
-TRUE_RESPONSE = "Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»"
-FALSE_RESPONSE = "Неправильно... Попробуешь ещё раз?"
-
-# MENU_BUTTON_CLICK, ANSWER = range(2)
-
 
 def start(bot, update):
     send_keyboard(bot, update.message.chat_id, 'Начинаем викторину!')
-    return States.MENU_BUTTON_CLICK
+    return States.WAITING_FOR_CLICK
 
 
 def stop(bot, update):
@@ -51,55 +43,37 @@ def error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"', update, error)
 
 
-def validate_answer(full_answer, user_msg):
-    if user_msg.lower() == full_answer.lower():
-        return True
-    elif len(user_msg) < 1:
-        return
-    else:
-        clean_answer = re.sub('[."\n]', '', full_answer.lower())
-        logger.debug(clean_answer)
-        answer = re.sub(" \([^)]*\)", '', clean_answer)
-        answer = re.sub(" \[[^)]*\]", '', answer)
-        user_answer = user_msg.replace('.', '').lower()
-        logger.info(f"{answer} == {user_answer}")
-        return answer == user_answer
-
-
 def handle_new_question_request(bot, update, db, quiz):
     new_question = get_random_question(quiz)
     bot_response = new_question["question"]
     send_keyboard(bot, update.message.chat_id, bot_response)    
-    db.set(
-        update.message.chat_id, 
-        new_question["answer"]
-    )
-    logger.info(f"QUIZ ITEM SET:\n{db.get(update.message.chat_id)}")
+    db_item_id = f"tg_{update.message.chat_id}"
+    db.set(db_item_id, new_question["answer"])
+    logger.info(f"QUIZ ITEM SET:\n{db.get(db_item_id)}")
     return States.ANSWER
 
 
 def handle_solution_attempt(bot, update, db, quiz):
-    quiz_item = db.get(update.message.chat_id)
+    quiz_item = db.get(f"tg_{update.message.chat_id}")
     logger.info(f"QUIZ ITEM GET:\n{quiz_item}")
         
     is_answer_true = validate_answer(quiz_item,  update.message.text)
     bot_response = is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE
         
     send_keyboard(bot, update.message.chat_id, bot_response)
-    return is_answer_true and States.MENU_BUTTON_CLICK or States.ANSWER
+    return is_answer_true and States.WAITING_FOR_CLICK or States.ANSWER
 
 
 def handle_my_points_request(bot, update):
     send_keyboard(bot, update.message.chat_id, 'Твой счёт 10 баллов')
-    return States.MENU_BUTTON_CLICK
+    return States.WAITING_FOR_CLICK
 
 
 def handle_dont_know_request(bot, update, db, quiz):
-    quiz_item = db.get(update.message.chat_id)
+    quiz_item = db.get(f"tg_{update.message.chat_id}")
     bot.send_message(chat_id=update.message.chat_id, 
         text=f'Правильный ответ: {quiz_item}\nДавай попробуем еще!')
-    handle_new_question_request(bot, update, db, quiz)
-    return States.ANSWER
+    return handle_new_question_request(bot, update, db, quiz)
 
 
 def send_keyboard(bot, chat_id, text):
@@ -115,12 +89,6 @@ def remove_keyboard(bot, chat_id):
         reply_markup=reply_markup)
 
 
-def get_random_question(quiz):   
-    question = random.choice(quiz)
-    logger.info(question)
-    return(question)
-
-
 def run_bot(bot_token, db_host, db_port, db_password, file_path='Data/test.txt'):
     redis_db = redis.Redis(host=db_host, port=db_port, db=0, 
         password=db_password, decode_responses=True)
@@ -131,7 +99,7 @@ def run_bot(bot_token, db_host, db_port, db_password, file_path='Data/test.txt')
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
-            States.MENU_BUTTON_CLICK: [
+            States.WAITING_FOR_CLICK: [
                 RegexHandler('^Новый вопрос$', 
                     partial(handle_new_question_request, db=redis_db, quiz=quiz)),
                 RegexHandler('^Мой счёт$', 
