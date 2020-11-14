@@ -1,9 +1,28 @@
-
 import logging
+import random
+import re
+
+from enum import Enum
 
 logger = logging.getLogger('quiz_bot_logger')
 logging.basicConfig(format='%(message)s',
                     level=logging.INFO)
+
+TRUE_RESPONSE = "Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»"
+FALSE_RESPONSE = "Неправильно... Попробуешь ещё раз?"
+
+
+class States(Enum):
+    START = 0
+    WAITING_FOR_CLICK = 1
+    ANSWER = 2
+
+
+def get_random_question(quiz):   
+    question = random.choice(quiz)
+    logger.info(question)
+    return(question)
+
 
 def parse_questions(file_path):
     with open(file_path, 'r', encoding='koi8-r') as file_obj:
@@ -25,6 +44,21 @@ def parse_questions(file_path):
         logger.debug('')
     logger.info(f"Parsed {len(quiz)} questions") 
     return quiz
+
+
+def validate_answer(full_answer, user_msg):
+    if user_msg.lower() == full_answer.lower():
+        return True
+    elif len(user_msg) < 1:
+        return
+    else:
+        clean_answer = re.sub('[."\n]', '', full_answer.lower())
+        logger.debug(clean_answer)
+        answer = re.sub(" \([^)]*\)", '', clean_answer)
+        answer = re.sub(" \[[^)]*\]", '', answer)
+        user_answer = user_msg.replace('.', '').lower()
+        logger.info(f"{answer} == {user_answer}")
+        return answer == user_answer
 
 
 def main():
