@@ -55,7 +55,7 @@ def create_keyboard(state):
     return keyboard
 
 
-def run_bot(token, db_host, db_port, db_password, file_path='Data/test.txt'):
+def run_bot(token, db_host, db_port, db_password, file_path='test.txt'):
     redis_db = redis.Redis(host=db_host, port=db_port, db=0, 
         password=db_password, decode_responses=True)
     quiz = parse_questions(file_path)
