@@ -74,7 +74,7 @@ def run_quiz(event, vk):
 
 def handle_solution_attempt(event, vk, db, quiz):
     quiz_item = db.get(f"vk_{event.user_id}")
-    logger.info(f"QUIZ ITEM GET:\n{quiz_item}")
+    logger.debug(f"QUIZ ITEM GET:\n{quiz_item}")
         
     is_answer_true = validate_answer(quiz_item,  event.text)
     bot_message= is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE
@@ -105,7 +105,7 @@ def handle_new_question_request(event, vk, db, quiz):
     send_keyboard(event, vk, new_question["question"], new_state)    
     db_item_id = f"vk_{event.user_id}"
     db.set(db_item_id, new_question["answer"])
-    logger.info(f"QUIZ ITEM SET:\n{db.get(db_item_id)}")
+    logger.info(f"NEW QUIZ ITEM FOR {db_item_id}, ANSWER:\n{db.get(db_item_id)}")
     return new_state
 
 

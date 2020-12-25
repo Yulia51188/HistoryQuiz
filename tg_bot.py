@@ -45,13 +45,13 @@ def handle_new_question_request(bot, update, db, quiz):
         new_question["question"])    
     db_item_id = f"tg_{update.message.chat_id}"
     db.set(db_item_id, new_question["answer"])
-    logger.info(f"QUIZ ITEM SET:\n{db.get(db_item_id)}")
+    logger.info(f"NEW QUIZ ITEM FOR {db_item_id}, ANSWER:\n{db.get(db_item_id)}")
     return States.ANSWER
 
 
 def handle_solution_attempt(bot, update, db, quiz):
     quiz_item = db.get(f"tg_{update.message.chat_id}")
-    logger.info(f"QUIZ ITEM GET:\n{quiz_item}")
+    logger.debug(f"QUIZ ITEM GET:\n{quiz_item}")
         
     is_answer_true = validate_answer(quiz_item,  update.message.text)
     bot_message = is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE

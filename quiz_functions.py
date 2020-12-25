@@ -19,7 +19,7 @@ class States(Enum):
 
 def get_random_question(quiz):   
     question = random.choice(quiz)
-    logger.info(question)
+    logger.debug(question)
     return(question)
 
 
@@ -52,7 +52,7 @@ def validate_answer(full_answer, user_msg):
         answer = re.sub(" \([^)]*\)", '', clean_answer)
         answer = re.sub(" \[[^)]*\]", '', answer)
         user_answer = user_msg.replace('.', '').lower()
-        logger.info(f"{answer} == {user_answer}")
+        logger.debug(f"{answer} == {user_answer}")
         return answer == user_answer
 
 
