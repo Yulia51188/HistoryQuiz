@@ -26,20 +26,16 @@ def get_random_question(quiz):
 def parse_questions(file_path):
     with open(file_path, 'r', encoding='koi8-r') as file_obj:
         questions_text = file_obj.read()
-
-    text_parts = questions_text.split('Вопрос')
-    quiz = []
-    for part in text_parts[1:]:
-        subparts = part.split('\n\n')
-        if len(subparts) > 1:
-            quiz.append({
-                'question': subparts[0].split(':\n')[1],
-                'answer': subparts[1].split(':\n')[1],
-            })
-
-    for part in quiz:
-        logger.debug(f'Вопрос: {part["question"]}')
-        logger.debug(f'Ответ: {part["answer"]}')        
+    questions = [paragraph.split(':\n')[1] for paragraph in questions_text.split("\n\n") 
+        if 'Вопрос' in paragraph]
+    logging.debug(questions[0])
+    answers = [paragraph.split(':\n')[1] for paragraph in questions_text.split("\n\n") 
+        if 'Ответ' in paragraph]   
+    quiz = [{"question": question, "answer":answer}
+        for question, answer in zip(questions, answers)]
+    for item in quiz:
+        logger.debug(f'Вопрос: {item["question"]}')
+        logger.debug(f'Ответ: {item["answer"]}')        
         logger.debug('')
     logger.info(f"Parsed {len(quiz)} questions") 
     return quiz
@@ -61,10 +57,8 @@ def validate_answer(full_answer, user_msg):
 
 
 def main():
-    logging.basicConfig(format='%(message)s',
-                    level=logging.INFO)
-    questions_file = 'test.txt'
-    parse_questions(questions_file)
+    logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+    parse_questions('test.txt')
 
 
 if __name__ == '__main__':
