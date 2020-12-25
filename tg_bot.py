@@ -41,8 +41,8 @@ def handle_error(bot, update, error):
 
 def handle_new_question_request(bot, update, db, quiz):
     new_question = get_random_question(quiz)
-    bot_response = new_question["question"]
-    send_message_with_keyboard(bot, update.message.chat_id, bot_response)    
+    send_message_with_keyboard(bot, update.message.chat_id, 
+        new_question["question"])    
     db_item_id = f"tg_{update.message.chat_id}"
     db.set(db_item_id, new_question["answer"])
     logger.info(f"QUIZ ITEM SET:\n{db.get(db_item_id)}")
@@ -54,9 +54,9 @@ def handle_solution_attempt(bot, update, db, quiz):
     logger.info(f"QUIZ ITEM GET:\n{quiz_item}")
         
     is_answer_true = validate_answer(quiz_item,  update.message.text)
-    bot_response = is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE
+    bot_message = is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE
         
-    send_message_with_keyboard(bot, update.message.chat_id, bot_response)
+    send_message_with_keyboard(bot, update.message.chat_id, bot_message)
     return is_answer_true and States.WAITING_FOR_CLICK or States.ANSWER
 
 

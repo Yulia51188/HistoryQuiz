@@ -86,9 +86,9 @@ def handle_solution_attempt(event, vk, db, quiz):
     logger.info(f"QUIZ ITEM GET:\n{quiz_item}")
         
     is_answer_true = validate_answer(quiz_item,  event.text)
-    bot_response = is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE
+    bot_message= is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE
     new_state = is_answer_true and States.WAITING_FOR_CLICK or States.ANSWER    
-    send_keyboard(event, vk, bot_response, new_state)
+    send_keyboard(event, vk,  bot_message, new_state)
     return new_state
 
 
@@ -110,9 +110,8 @@ def handle_dont_know_request(event, vk, db, quiz):
 
 def handle_new_question_request(event, vk, db, quiz):
     new_question = get_random_question(quiz)
-    bot_response = new_question["question"]
     new_state = States.ANSWER
-    send_keyboard(event, vk, bot_response, new_state)    
+    send_keyboard(event, vk, new_question["question"], new_state)    
     db_item_id = f"vk_{event.user_id}"
     db.set(db_item_id, new_question["answer"])
     logger.info(f"QUIZ ITEM SET:\n{db.get(db_item_id)}")
