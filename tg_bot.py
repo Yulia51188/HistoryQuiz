@@ -26,7 +26,7 @@ logger = logging.getLogger('quiz_bot_logger')
 
 
 def start(bot, update):
-    send_keyboard(bot, update.message.chat_id, 'Начинаем викторину!')
+    send_message_with_keyboard(bot, update.message.chat_id, 'Начинаем викторину!')
     return States.WAITING_FOR_CLICK
 
 
@@ -42,7 +42,7 @@ def handle_error(bot, update, error):
 def handle_new_question_request(bot, update, db, quiz):
     new_question = get_random_question(quiz)
     bot_response = new_question["question"]
-    send_keyboard(bot, update.message.chat_id, bot_response)    
+    send_message_with_keyboard(bot, update.message.chat_id, bot_response)    
     db_item_id = f"tg_{update.message.chat_id}"
     db.set(db_item_id, new_question["answer"])
     logger.info(f"QUIZ ITEM SET:\n{db.get(db_item_id)}")
@@ -56,12 +56,12 @@ def handle_solution_attempt(bot, update, db, quiz):
     is_answer_true = validate_answer(quiz_item,  update.message.text)
     bot_response = is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE
         
-    send_keyboard(bot, update.message.chat_id, bot_response)
+    send_message_with_keyboard(bot, update.message.chat_id, bot_response)
     return is_answer_true and States.WAITING_FOR_CLICK or States.ANSWER
 
 
 def handle_my_points_request(bot, update):
-    send_keyboard(bot, update.message.chat_id, 'Твой счёт 10 баллов')
+    send_message_with_keyboard(bot, update.message.chat_id, 'Твой счёт 10 баллов')
     return States.WAITING_FOR_CLICK
 
 
@@ -72,10 +72,10 @@ def handle_dont_know_request(bot, update, db, quiz):
     return handle_new_question_request(bot, update, db, quiz)
 
 
-def send_keyboard(bot, chat_id, text):
+def send_message_with_keyboard(bot, chat_id, message):
     custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Мой счёт']]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard)
-    bot.send_message(chat_id=chat_id, text=text, 
+    bot.send_message(chat_id=chat_id, text=message, 
         reply_markup=reply_markup)
 
 
