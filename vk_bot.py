@@ -20,14 +20,6 @@ from vk_api.utils import get_random_id
 logger = logging.getLogger('quiz_bot_logger')
 
 
-def echo(event, vk):
-    vk.messages.send(
-        user_id=event.user_id,
-        message=event.text,
-        random_id=get_random_id()
-    )
-
-
 def send_keyboard(event, vk, message, state=States.WAITING_FOR_CLICK):
     keyboard = create_keyboard(state)
     vk.messages.send(
