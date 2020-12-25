@@ -2,7 +2,7 @@
 History Quiz Bot developed for a training course Devman (project 4, module Chatbots)
 Try it, writing to: Telegram channel @history_quiz_123_bot or [VK group](https://vk.com/public198736597). Both bots are deployed on [Heroku](heroku.com) and are available rigth now!
 
-![tg_bot_demo](demo_tg_bot.gif) ![vk_bot_demo](demo_vk_bot.gif)
+![tg_bot_demo](Demo/demo_tg_bot.gif) ![vk_bot_demo](Demo/demo_vk_bot.gif)
 
 # About
 Telegram and VK bots parse questions from TXT file and use free [redis database](https://redislabs.com/) to store current question for user by chat ID.
