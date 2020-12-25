@@ -17,9 +17,6 @@ from vk_api.longpoll import VkLongPoll
 from vk_api.utils import get_random_id
 
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-
 logger = logging.getLogger('quiz_bot_logger')
 
 
@@ -123,6 +120,10 @@ def handle_new_question_request(event, vk, db, quiz):
 
 
 def main():
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level=logging.INFO
+    )
     load_dotenv()
     bot_token = os.getenv("VK_TOKEN")
     db_host = os.getenv("DB_HOST")

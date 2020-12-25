@@ -5,8 +5,7 @@ import re
 from enum import Enum
 
 logger = logging.getLogger('quiz_bot_logger')
-logging.basicConfig(format='%(message)s',
-                    level=logging.INFO)
+
 
 TRUE_RESPONSE = "Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»"
 FALSE_RESPONSE = "Неправильно... Попробуешь ещё раз?"
@@ -62,7 +61,9 @@ def validate_answer(full_answer, user_msg):
 
 
 def main():
-    questions_file = 'Data/120br.txt'
+    logging.basicConfig(format='%(message)s',
+                    level=logging.INFO)
+    questions_file = 'test.txt'
     parse_questions(questions_file)
 
 

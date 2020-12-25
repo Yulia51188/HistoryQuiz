@@ -22,11 +22,7 @@ from telegram.ext import MessageHandler
 from telegram.ext import RegexHandler
 from telegram.ext import Updater
 
-
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-
-logger = logging.getLogger('quiz_bot_logger')
+logger = logging.getLogger('quiz_bot_logger') 
 
 
 def start(bot, update):
@@ -122,6 +118,10 @@ def run_bot(bot_token, db_host, db_port, db_password, file_path='test.txt'):
 
 
 def main():
+    logging.basicConfig(
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level=logging.INFO
+    )   
     load_dotenv()
     bot_token = os.getenv("TG_TOKEN")
     db_host = os.getenv("DB_HOST")
