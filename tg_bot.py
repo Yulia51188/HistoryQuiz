@@ -35,7 +35,7 @@ def stop(bot, update):
     return ConversationHandler.END 
 
 
-def error(bot, update, error):
+def handle_error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"', update, error)
 
 
@@ -111,7 +111,7 @@ def run_bot(bot_token, db_host, db_port, db_password, file_path='test.txt'):
         fallbacks=[CommandHandler('stop', stop)]
     )
     dp.add_handler(conv_handler)
-    dp.add_error_handler(error)
+    dp.add_error_handler(handle_error)
 
     updater.start_polling()
     updater.idle()
