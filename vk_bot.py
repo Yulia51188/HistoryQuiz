@@ -4,12 +4,12 @@ import redis
 import vk_api
 
 from dotenv import load_dotenv
-from parse_questions import FALSE_RESPONSE
-from parse_questions import States
-from parse_questions import TRUE_RESPONSE
-from parse_questions import get_random_question
-from parse_questions import parse_questions
-from parse_questions import validate_answer
+from quiz_functions import FALSE_RESPONSE
+from quiz_functions import States
+from quiz_functions import TRUE_RESPONSE
+from quiz_functions import get_random_question
+from quiz_functions import parse_questions
+from quiz_functions import validate_answer
 from vk_api.keyboard import VkKeyboard
 from vk_api.keyboard import VkKeyboardColor
 from vk_api.longpoll import VkEventType
@@ -40,7 +40,6 @@ def create_keyboard(state):
         keyboard.add_button('Сдаться', color=VkKeyboardColor.SECONDARY)
     keyboard.add_line()
     keyboard.add_button('Мой счёт', color=VkKeyboardColor.SECONDARY)
-
     return keyboard
 
 

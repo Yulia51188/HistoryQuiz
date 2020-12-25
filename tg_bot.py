@@ -7,12 +7,12 @@ import redis
 
 from dotenv import load_dotenv
 from functools import partial
-from parse_questions import FALSE_RESPONSE
-from parse_questions import States
-from parse_questions import TRUE_RESPONSE
-from parse_questions import get_random_question
-from parse_questions import parse_questions
-from parse_questions import validate_answer
+from quiz_functions import FALSE_RESPONSE
+from quiz_functions import States
+from quiz_functions import TRUE_RESPONSE
+from quiz_functions import get_random_question
+from quiz_functions import parse_questions
+from quiz_functions import validate_answer
 from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from telegram.ext import CommandHandler
