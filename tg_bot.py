@@ -33,7 +33,7 @@ def stop(bot, update):
 
 
 def handle_error(bot, update, error):
-    logger.warning('Update "%s" caused error "%s"', update, error)
+    logger.error('Update "%s" caused error "%s"', update, error)
 
 
 def handle_new_question_request(bot, update, db, quiz):
