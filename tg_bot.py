@@ -59,6 +59,7 @@ def handle_solution_attempt(bot, update, db, quiz):
 
 
 def handle_my_points_request(bot, update):
+    #TODO
     send_message_with_keyboard(bot, update.message.chat_id, 'Твой счёт 10 баллов')
     return States.WAITING_FOR_CLICK
 

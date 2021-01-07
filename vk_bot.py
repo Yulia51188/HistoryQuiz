@@ -85,6 +85,7 @@ def handle_solution_attempt(event, vk, db, quiz):
 
 def handle_my_points_request(event, vk):
     new_state = States.WAITING_FOR_CLICK
+    #TODO
     send_keyboard(event, vk, 'Твой счёт 10 баллов', new_state)
     return new_state
 
