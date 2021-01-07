@@ -6,9 +6,8 @@ from enum import Enum
 
 logger = logging.getLogger('quiz_bot_logger')
 
-
-TRUE_RESPONSE = "Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»"
-FALSE_RESPONSE = "Неправильно... Попробуешь ещё раз?"
+CORRECT_ANSWER_RESPONSE = "Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»"
+FAILED_ANSWER_RESPONSE = "Неправильно... Попробуешь ещё раз?"
 
 
 class States(Enum):

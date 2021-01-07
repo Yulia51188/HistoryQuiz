@@ -4,9 +4,9 @@ import redis
 
 from dotenv import load_dotenv
 from functools import partial
-from quiz_functions import FALSE_RESPONSE
+from quiz_functions import CORRECT_ANSWER_RESPONSE
+from quiz_functions import FAILED_ANSWER_RESPONSE
 from quiz_functions import States
-from quiz_functions import TRUE_RESPONSE
 from quiz_functions import get_random_question
 from quiz_functions import parse_questions
 from quiz_functions import validate_answer
@@ -51,7 +51,8 @@ def handle_solution_attempt(bot, update, db, quiz):
     logger.debug(f"QUIZ ITEM GET:\n{quiz_item}")
         
     is_answer_true = validate_answer(quiz_item,  update.message.text)
-    bot_message = is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE
+    bot_message = is_answer_true and CORRECT_ANSWER_RESPONSE or 
+        FAILED_ANSWER_RESPONSE
         
     send_message_with_keyboard(bot, update.message.chat_id, bot_message)
     return is_answer_true and States.WAITING_FOR_CLICK or States.ANSWER
@@ -94,15 +95,30 @@ def run_bot(bot_token, db_host, db_port, db_password, file_path='test.txt'):
         states={
             States.WAITING_FOR_CLICK: [
                 RegexHandler('^Новый вопрос$', 
-                    partial(handle_new_question_request, db=redis_db, quiz=quiz)),
+                    partial(
+                        handle_new_question_request, 
+                        db=redis_db, 
+                        quiz=quiz
+                    )
+                ),
                 RegexHandler('^Мой счёт$', 
                     handle_my_points_request),
                 ],
             States.ANSWER: [
                     RegexHandler('^Сдаться$', 
-                        partial(handle_give_up_request, db=redis_db, quiz=quiz)),
+                        partial(
+                            handle_give_up_request, 
+                            db=redis_db,
+                            quiz=quiz
+                        )
+                    ),
                     MessageHandler(Filters.text, 
-                        partial(handle_solution_attempt, db=redis_db, quiz=quiz)),
+                        partial(
+                            handle_solution_attempt,
+                            db=redis_db,
+                            quiz=quiz
+                        )
+                    ),
                 ],
         },
         fallbacks=[CommandHandler('stop', stop)]
