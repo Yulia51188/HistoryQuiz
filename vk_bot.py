@@ -55,7 +55,7 @@ def run_bot(token, db_host, db_port, db_password, file_path='test.txt'):
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             if state == States.START:
-                state = run_quiz(event, vk)
+                state = start_quiz(event, vk)
             if event.text == 'Новый вопрос' and state == States.WAITING_FOR_CLICK:
                 state = handle_new_question_request(event, vk, redis_db, quiz)
             elif event.text == 'Мой счёт' and state == States.WAITING_FOR_CLICK:
@@ -66,7 +66,7 @@ def run_bot(token, db_host, db_port, db_password, file_path='test.txt'):
                 state = handle_solution_attempt(event, vk, redis_db, quiz)
 
 
-def run_quiz(event, vk):
+def start_quiz(event, vk):
     new_state = States.WAITING_FOR_CLICK
     send_keyboard(event, vk, 'Начинаем викторину!', new_state)
     return new_state
