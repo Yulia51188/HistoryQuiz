@@ -65,7 +65,7 @@ def handle_my_points_request(bot, update):
     return States.WAITING_FOR_CLICK
 
 
-def handle_dont_know_request(bot, update, db, quiz):
+def handle_give_up_request(bot, update, db, quiz):
     quiz_item = db.get(f"tg_{update.message.chat_id}")
     bot.send_message(chat_id=update.message.chat_id, 
         text=f'Правильный ответ: {quiz_item}\nДавай попробуем еще!')
@@ -103,7 +103,7 @@ def run_bot(bot_token, db_host, db_port, db_password, file_path='test.txt'):
                 ],
             States.ANSWER: [
                     RegexHandler('^Сдаться$', 
-                        partial(handle_dont_know_request, db=redis_db, quiz=quiz)),
+                        partial(handle_give_up_request, db=redis_db, quiz=quiz)),
                     MessageHandler(Filters.text, 
                         partial(handle_solution_attempt, db=redis_db, quiz=quiz)),
                 ],

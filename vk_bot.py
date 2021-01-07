@@ -61,7 +61,7 @@ def run_bot(token, db_host, db_port, db_password, file_path='test.txt'):
             elif event.text == 'Мой счёт' and state == States.WAITING_FOR_CLICK:
                 state = handle_my_points_request(event, vk)
             elif event.text == 'Сдаться' and state == States.ANSWER:
-                state = handle_dont_know_request(event, vk, redis_db, quiz)
+                state = handle_give_up_request(event, vk, redis_db, quiz)
             elif state == States.ANSWER:
                 state = handle_solution_attempt(event, vk, redis_db, quiz)
 
@@ -89,7 +89,7 @@ def handle_my_points_request(event, vk):
     return new_state
 
 
-def handle_dont_know_request(event, vk, db, quiz):
+def handle_give_up_request(event, vk, db, quiz):
     quiz_item = db.get(f"vk_{event.user_id}")
     vk.messages.send(
         user_id=event.user_id,
