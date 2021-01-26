@@ -51,8 +51,8 @@ def handle_solution_attempt(bot, update, db, quiz):
     logger.debug(f"QUIZ ITEM GET:\n{quiz_item}")
         
     is_answer_true = validate_answer(quiz_item,  update.message.text)
-    bot_message = is_answer_true and CORRECT_ANSWER_RESPONSE or 
-        FAILED_ANSWER_RESPONSE
+    bot_message = (is_answer_true and CORRECT_ANSWER_RESPONSE or 
+        FAILED_ANSWER_RESPONSE)
         
     send_message_with_keyboard(bot, update.message.chat_id, bot_message)
     return is_answer_true and States.WAITING_FOR_CLICK or States.ANSWER
