@@ -138,9 +138,9 @@ def main():
     )   
     load_dotenv()
     bot_token = os.getenv("TG_TOKEN")
-    db_host = os.getenv("DB_HOST")
-    db_port = os.getenv("DB_PORT")
-    db_password = os.getenv("DB_PASSWORD")
+    db_host = os.getenv("DB_HOST", default='localhost')
+    db_port = os.getenv("DB_PORT", default=6379)
+    db_password = os.getenv("DB_PASSWORD", default=None)
     run_bot(bot_token, db_host, db_port, db_password)
 
 
