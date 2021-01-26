@@ -55,6 +55,15 @@ def validate_answer(full_answer, user_msg):
         return answer == user_answer
 
 
+def validate_db_connection(db):
+    try:
+        redis_db.set(0, 0)
+        return True
+    except redis.exceptions.ConnectionError as error:
+        logger.error(error)
+        return 
+
+
 def main():
     logging.basicConfig(format='%(message)s', level=logging.DEBUG)
     parse_questions('test.txt')

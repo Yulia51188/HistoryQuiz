@@ -10,6 +10,7 @@ from quiz_functions import TRUE_RESPONSE
 from quiz_functions import get_random_question
 from quiz_functions import parse_questions
 from quiz_functions import validate_answer
+from quiz_functions import validate_db_connection
 from vk_api.keyboard import VkKeyboard
 from vk_api.keyboard import VkKeyboardColor
 from vk_api.longpoll import VkEventType
@@ -47,7 +48,8 @@ def run_bot(token, db_host, db_port, db_password, file_path='test.txt'):
     redis_db = redis.Redis(host=db_host, port=db_port, db=0, 
         password=db_password, decode_responses=True)
     quiz = parse_questions(file_path)
-
+    if not validate_db_connection:
+        return
     vk_session = vk_api.VkApi(token=token)
     vk = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)

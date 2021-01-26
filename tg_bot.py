@@ -10,6 +10,7 @@ from quiz_functions import States
 from quiz_functions import get_random_question
 from quiz_functions import parse_questions
 from quiz_functions import validate_answer
+from quiz_functions import validate_db_connection
 from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from telegram.ext import CommandHandler
@@ -88,7 +89,8 @@ def run_bot(bot_token, db_host, db_port, db_password, file_path='test.txt'):
     redis_db = redis.Redis(host=db_host, port=db_port, db=0, 
         password=db_password, decode_responses=True)
     quiz = parse_questions(file_path)
-
+    if not validate_db_connection:
+        return
     updater = Updater(bot_token)
     dp = updater.dispatcher
     conv_handler = ConversationHandler(
