@@ -56,13 +56,14 @@ def run_bot(token, db_host, db_port, db_password, file_path='test.txt'):
     state = States.START
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+            event_text = event.text.lower().strip()
             if state == States.START:
                 state = start_quiz(event, vk)
-            if event.text == 'Новый вопрос' and state == States.WAITING_FOR_CLICK:
+            if event_text == 'новый вопрос' and state == States.WAITING_FOR_CLICK:
                 state = handle_new_question_request(event, vk, redis_db, quiz)
-            elif event.text == 'Мой счёт' and state == States.WAITING_FOR_CLICK:
+            elif event_text == 'Мой счёт' and state == States.WAITING_FOR_CLICK:
                 state = handle_my_points_request(event, vk)
-            elif event.text == 'Сдаться' and state == States.ANSWER:
+            elif event_text == 'Сдаться' and state == States.ANSWER:
                 state = handle_give_up_request(event, vk, redis_db, quiz)
             elif state == States.ANSWER:
                 state = handle_solution_attempt(event, vk, redis_db, quiz)

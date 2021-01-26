@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import redis
 
 from dotenv import load_dotenv
@@ -97,18 +98,18 @@ def run_bot(bot_token, db_host, db_port, db_password, file_path='test.txt'):
         entry_points=[CommandHandler('start', start)],
         states={
             States.WAITING_FOR_CLICK: [
-                RegexHandler('^Новый вопрос$', 
+                RegexHandler(re.compile('^Новый вопрос$', re.IGNORECASE), 
                     partial(
                         handle_new_question_request, 
                         db=redis_db, 
                         quiz=quiz
                     )
                 ),
-                RegexHandler('^Мой счёт$', 
+                RegexHandler(re.compile('^Мой счёт$', re.IGNORECASE),
                     handle_my_points_request),
                 ],
             States.ANSWER: [
-                    RegexHandler('^Сдаться$', 
+                    RegexHandler(re.compile('^Сдаться$', re.IGNORECASE),
                         partial(
                             handle_give_up_request, 
                             db=redis_db,
