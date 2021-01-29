@@ -34,8 +34,8 @@ def stop(bot, update):
     return ConversationHandler.END 
 
 
-def handle_error(bot, update, error):
-    logger.error('Update "%s" caused error "%s"', update, error)
+def handle_error(update, context):
+    logger.error('Update "%s" caused error "%s"', update, context)
 
 
 def handle_new_question_request(bot, update, db, quiz):
