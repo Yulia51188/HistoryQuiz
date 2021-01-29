@@ -37,7 +37,7 @@ def create_keyboard(state):
         keyboard.add_button('Новый вопрос', color=VkKeyboardColor.SECONDARY)
         keyboard.add_button('Сдаться', color=VkKeyboardColor.NEGATIVE)
     elif state == States.WAITING_FOR_CLICK:
-        keyboard.add_button('Новый вопрос', color=VkKeyboardColor.PRIMARY)        
+        keyboard.add_button('Новый вопрос', color=VkKeyboardColor.PRIMARY)
         keyboard.add_button('Сдаться', color=VkKeyboardColor.SECONDARY)
     keyboard.add_line()
     keyboard.add_button('Мой счёт', color=VkKeyboardColor.SECONDARY)
@@ -45,7 +45,7 @@ def create_keyboard(state):
 
 
 def run_bot(token, db_host, db_port, db_password, file_path='test.txt'):
-    redis_db = redis.Redis(host=db_host, port=db_port, db=0, 
+    redis_db = redis.Redis(host=db_host, port=db_port, db=0,
         password=db_password, decode_responses=True)
     quiz = parse_questions(file_path)
     if not validate_db_connection:
@@ -78,11 +78,11 @@ def start_quiz(event, vk):
 def handle_solution_attempt(event, vk, db, quiz):
     quiz_item = db.get(f"vk_{event.user_id}")
     logger.debug(f"QUIZ ITEM GET:\n{quiz_item}")
-        
-    is_answer_true = validate_answer(quiz_item,  event.text)
-    bot_message= is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE
-    new_state = is_answer_true and States.WAITING_FOR_CLICK or States.ANSWER    
-    send_keyboard(event, vk,  bot_message, new_state)
+
+    is_answer_true = validate_answer(quiz_item, event.text)
+    bot_message = is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE
+    new_state = is_answer_true and States.WAITING_FOR_CLICK or States.ANSWER
+    send_keyboard(event, vk, bot_message, new_state)
     return new_state
 
 
@@ -99,17 +99,17 @@ def handle_give_up_request(event, vk, db, quiz):
         user_id=event.user_id,
         message=f'Правильный ответ: {quiz_item}\nДавай попробуем еще!',
         random_id=get_random_id()
-    )    
+    )
     return handle_new_question_request(event, vk, db, quiz)
-    
+
 
 def handle_new_question_request(event, vk, db, quiz):
     new_question = get_random_question(quiz)
     new_state = States.ANSWER
-    send_keyboard(event, vk, new_question["question"], new_state)    
+    send_keyboard(event, vk, new_question["question"], new_state)
     db_item_id = f"vk_{event.user_id}"
     db.set(db_item_id, new_question["answer"])
-    logger.info(f"NEW QUIZ ITEM FOR {db_item_id}, ANSWER:\n{db.get(db_item_id)}")
+    logger.info(f"{db_item_id}: ANSWER:\n{db.get(db_item_id)}")
     return new_state
 
 
@@ -124,7 +124,7 @@ def main():
     db_port = os.getenv("DB_PORT", default=6379)
     db_password = os.getenv("DB_PASSWORD", default=None)
     run_bot(bot_token, db_host, db_port, db_password)
-    
+
 
 if __name__ == "__main__":
     main()
