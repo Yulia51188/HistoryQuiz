@@ -48,8 +48,8 @@ def validate_answer(full_answer, user_msg):
     else:
         clean_answer = re.sub('[."\n]', '', full_answer.lower())
         logger.debug(clean_answer)
-        answer = re.sub(" \([^)]*\)", '', clean_answer)
-        answer = re.sub(" \[[^)]*\]", '', answer)
+        answer = re.sub(r" \([^)]*\)", '', clean_answer)
+        answer = re.sub(r" \[[^)]*\]", '', answer)
         user_answer = user_msg.replace('.', '').lower()
         logger.debug(f"{answer} == {user_answer}")
         return answer == user_answer
