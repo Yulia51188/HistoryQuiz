@@ -24,6 +24,19 @@ from telegram.ext import Updater
 logger = logging.getLogger('quiz_bot_logger')
 
 
+def exception_handler(func):
+    
+    def inner_function(bot, update, *args, **kwargs):
+        try:
+            return func(bot, update, *args, **kwargs)
+        except redis.exceptions.ConnectionError as error:
+            logger.error(error)
+            send_message_with_keyboard(bot, update.message.chat_id,
+                'Извините, викторина временно недоступна!')
+    
+    return inner_function
+
+
 def start(bot, update):
     send_message_with_keyboard(bot, update.message.chat_id,
         'Начинаем викторину!')
@@ -39,16 +52,18 @@ def handle_error(update, context):
     logger.error('Update "%s" caused error "%s"', update, context)
 
 
+@exception_handler
 def handle_new_question_request(bot, update, db, quiz):
     new_question = get_random_question(quiz)
-    send_message_with_keyboard(bot, update.message.chat_id,
-        new_question["question"])
     db_item_id = f"tg_{update.message.chat_id}"
     db.set(db_item_id, new_question["answer"])
+    send_message_with_keyboard(bot, update.message.chat_id,
+        new_question["question"])
     logger.info(f"{db_item_id}: ANSWER:\n{db.get(db_item_id)}")
     return States.ANSWER
 
 
+@exception_handler
 def handle_solution_attempt(bot, update, db, quiz):
     quiz_item = db.get(f"tg_{update.message.chat_id}")
     logger.debug(f"QUIZ ITEM GET:\n{quiz_item}")
@@ -61,6 +76,7 @@ def handle_solution_attempt(bot, update, db, quiz):
     return is_answer_true and States.WAITING_FOR_CLICK or States.ANSWER
 
 
+@exception_handler
 def handle_my_points_request(bot, update):
     #TODO
     send_message_with_keyboard(bot, update.message.chat_id,
@@ -68,6 +84,7 @@ def handle_my_points_request(bot, update):
     return States.WAITING_FOR_CLICK
 
 
+@exception_handler
 def handle_give_up_request(bot, update, db, quiz):
     quiz_item = db.get(f"tg_{update.message.chat_id}")
     bot.send_message(chat_id=update.message.chat_id,

@@ -4,9 +4,9 @@ import redis
 import vk_api
 
 from dotenv import load_dotenv
-from quiz_functions import FALSE_RESPONSE
+from quiz_functions import CORRECT_ANSWER_RESPONSE
+from quiz_functions import FAILED_ANSWER_RESPONSE
 from quiz_functions import States
-from quiz_functions import TRUE_RESPONSE
 from quiz_functions import get_random_question
 from quiz_functions import parse_questions
 from quiz_functions import validate_answer
@@ -19,6 +19,22 @@ from vk_api.utils import get_random_id
 
 
 logger = logging.getLogger('quiz_bot_logger')
+
+
+def exception_handler(func):
+    
+    def inner_function(event, vk, *args, **kwargs):
+        try:
+            return func(event, vk, *args, **kwargs)
+        except redis.exceptions.ConnectionError as error:
+            logger.error(error)
+            vk.messages.send(
+                user_id=event.user_id,
+                message='Извините, викторина временно недоступна!',
+                random_id=get_random_id()
+            )
+
+    return inner_function
 
 
 def send_keyboard(event, vk, message, state=States.WAITING_FOR_CLICK):
@@ -75,17 +91,20 @@ def start_quiz(event, vk):
     return new_state
 
 
+@exception_handler
 def handle_solution_attempt(event, vk, db, quiz):
     quiz_item = db.get(f"vk_{event.user_id}")
     logger.debug(f"QUIZ ITEM GET:\n{quiz_item}")
 
     is_answer_true = validate_answer(quiz_item, event.text)
-    bot_message = is_answer_true and TRUE_RESPONSE or FALSE_RESPONSE
+    bot_message = (is_answer_true and CORRECT_ANSWER_RESPONSE or
+        FAILED_ANSWER_RESPONSE)
     new_state = is_answer_true and States.WAITING_FOR_CLICK or States.ANSWER
     send_keyboard(event, vk, bot_message, new_state)
     return new_state
 
 
+@exception_handler
 def handle_my_points_request(event, vk):
     new_state = States.WAITING_FOR_CLICK
     #TODO
@@ -93,6 +112,7 @@ def handle_my_points_request(event, vk):
     return new_state
 
 
+@exception_handler
 def handle_give_up_request(event, vk, db, quiz):
     quiz_item = db.get(f"vk_{event.user_id}")
     vk.messages.send(
@@ -103,12 +123,13 @@ def handle_give_up_request(event, vk, db, quiz):
     return handle_new_question_request(event, vk, db, quiz)
 
 
+@exception_handler
 def handle_new_question_request(event, vk, db, quiz):
     new_question = get_random_question(quiz)
     new_state = States.ANSWER
-    send_keyboard(event, vk, new_question["question"], new_state)
     db_item_id = f"vk_{event.user_id}"
     db.set(db_item_id, new_question["answer"])
+    send_keyboard(event, vk, new_question["question"], new_state)
     logger.info(f"{db_item_id}: ANSWER:\n{db.get(db_item_id)}")
     return new_state
 
