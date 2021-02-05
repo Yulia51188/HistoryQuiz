@@ -203,7 +203,7 @@ def handle_new_question_request(event, vk, db, quiz):
 def main():
     logging.basicConfig(
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        level=logging.DEBUG
+        level=logging.INFO
     )
     load_dotenv()
     bot_token = os.getenv("VK_TOKEN")
