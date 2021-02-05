@@ -71,14 +71,14 @@ def create_keyboard(state):
     return keyboard
 
 
-# @exception_handler
+@exception_handler
 def save_user_state(event, vk, db, new_state):
     db.set(STATE_ID_TEMPLATE.format(event.user_id), new_state.value)
     logger.debug(f'VK user {event.user_id} state {new_state} is saved with key '
         f'{STATE_ID_TEMPLATE.format(event.user_id)}')
 
 
-# @exception_handler
+@exception_handler
 def get_user_state(event, vk, db):
     state_value = db.get(STATE_ID_TEMPLATE.format(event.user_id))
     if not state_value:

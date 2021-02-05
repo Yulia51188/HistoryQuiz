@@ -47,14 +47,13 @@ def validate_answer(full_answer, user_msg):
         return True
     elif len(user_msg) < 1:
         return
-    else:
-        clean_answer = re.sub('[."\n]', '', full_answer.lower())
-        logger.debug(clean_answer)
-        answer = re.sub(r" \([^)]*\)", '', clean_answer)
-        answer = re.sub(r" \[[^)]*\]", '', answer)
-        user_answer = user_msg.replace('.', '').lower()
-        logger.debug(f"{answer} == {user_answer}")
-        return answer == user_answer
+    clean_answer = re.sub('[."\n]', '', full_answer.lower())
+    logger.debug(clean_answer)
+    answer = re.sub(r" \([^)]*\)", '', clean_answer)
+    answer = re.sub(r" \[[^)]*\]", '', answer)
+    user_answer = user_msg.replace('.', '').lower()
+    logger.debug(f"{answer} == {user_answer}")
+    return answer == user_answer
 
 
 def main():
