@@ -50,8 +50,8 @@ def stop(bot, update):
     return ConversationHandler.END
 
 
-def handle_error(bot, update):
-    logger.error('Update "%s" caused error "%s"', update)
+def handle_error(update, context, error):
+    logger.error('Update "%s" caused error "%s"', update, error)
 
 
 @exception_handler
