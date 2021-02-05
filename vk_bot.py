@@ -74,8 +74,6 @@ def create_keyboard(state):
 
 # @exception_handler
 def save_user_state(event, vk, db, new_state):
-    logger.debug(f'Try to set state for {STATE_ID_TEMPLATE.format(event.user_id)}')
-    logger.debug(f'New state {new_state.value} - {type(new_state.value)}')
     db.set(STATE_ID_TEMPLATE.format(event.user_id), new_state.value)
     logger.debug(f'VK user {event.user_id} state {new_state} is saved with key '
         f'{STATE_ID_TEMPLATE.format(event.user_id)}')
@@ -83,7 +81,6 @@ def save_user_state(event, vk, db, new_state):
 
 # @exception_handler
 def get_user_state(event, vk, db):
-    logger.debug(f'Try to get state for {STATE_ID_TEMPLATE.format(event.user_id)}')
     state_value = db.get(STATE_ID_TEMPLATE.format(event.user_id))
     state = States(int(state_value))
     logger.debug(f'VK user state {state}={state_value} is got by key '
