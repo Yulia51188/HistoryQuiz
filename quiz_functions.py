@@ -16,7 +16,7 @@ class States(Enum):
     ANSWER = 2
 
 
-def get_random_question(quiz):   
+def get_random_question(quiz):
     question = random.choice(quiz)
     logger.debug(question)
     return(question)
@@ -25,18 +25,20 @@ def get_random_question(quiz):
 def parse_questions(file_path):
     with open(file_path, 'r', encoding='koi8-r') as file_obj:
         questions_text = file_obj.read()
-    questions = [paragraph.split(':\n')[1] for paragraph in questions_text.split("\n\n") 
-        if 'Вопрос' in paragraph]
+    questions = [paragraph.split(':\n')[1]
+                for paragraph in questions_text.split("\n\n")
+                if 'Вопрос' in paragraph]
     logging.debug(questions[0])
-    answers = [paragraph.split(':\n')[1] for paragraph in questions_text.split("\n\n") 
-        if 'Ответ' in paragraph]   
-    quiz = [{"question": question, "answer":answer}
+    answers = [paragraph.split(':\n')[1]
+                for paragraph in questions_text.split("\n\n")
+                if 'Ответ' in paragraph]
+    quiz = [{"question": question, "answer": answer}
         for question, answer in zip(questions, answers)]
     for item in quiz:
         logger.debug(f'Вопрос: {item["question"]}')
-        logger.debug(f'Ответ: {item["answer"]}')        
+        logger.debug(f'Ответ: {item["answer"]}')
         logger.debug('')
-    logger.info(f"Parsed {len(quiz)} questions") 
+    logger.info(f"Parsed {len(quiz)} questions")
     return quiz
 
 
@@ -53,15 +55,6 @@ def validate_answer(full_answer, user_msg):
         user_answer = user_msg.replace('.', '').lower()
         logger.debug(f"{answer} == {user_answer}")
         return answer == user_answer
-
-
-def validate_db_connection(db):
-    try:
-        redis_db.set(0, 0)
-        return True
-    except redis.exceptions.ConnectionError as error:
-        logger.error(error)
-        return 
 
 
 def main():
