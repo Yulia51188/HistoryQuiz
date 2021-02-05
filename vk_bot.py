@@ -153,7 +153,7 @@ def handle_solution_attempt(event, vk, db, quiz):
 
     is_answer_true = validate_answer(quiz_item, event.text)
     if is_answer_true:
-        old_score = int(db.get(SCORE_ID_TEMPLATE.format(event.user_id))) or 0
+        old_score = int(db.get(SCORE_ID_TEMPLATE.format(event.user_id)) or 0)
         db.set(SCORE_ID_TEMPLATE.format(event.user_id), old_score + 1)
         logger.debug(f'Add point to {event.user_id}, old is {old_score}')
 
