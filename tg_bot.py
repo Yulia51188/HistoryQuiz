@@ -25,7 +25,7 @@ logger = logging.getLogger('quiz_bot_logger')
 
 
 def exception_handler(func):
-    
+
     def inner_function(bot, update, *args, **kwargs):
         try:
             return func(bot, update, *args, **kwargs)
@@ -33,7 +33,7 @@ def exception_handler(func):
             logger.error(error)
             send_message_with_keyboard(bot, update.message.chat_id,
                 'Извините, викторина временно недоступна!')
-    
+
     return inner_function
 
 
