@@ -11,7 +11,6 @@ from quiz_functions import States
 from quiz_functions import get_random_question
 from quiz_functions import parse_questions
 from quiz_functions import validate_answer
-from quiz_functions import validate_db_connection
 from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from telegram.ext import CommandHandler
@@ -22,6 +21,9 @@ from telegram.ext import RegexHandler
 from telegram.ext import Updater
 
 logger = logging.getLogger('quiz_bot_logger')
+
+QUIZ_ID_TEMPLATE = 'tg_{}_quiz'
+SCORE_ID_TEMPLATE = 'tg_{}_score'
 
 
 def exception_handler(func):
@@ -55,7 +57,7 @@ def handle_error(update, context):
 @exception_handler
 def handle_new_question_request(bot, update, db, quiz):
     new_question = get_random_question(quiz)
-    db_item_id = f"tg_{update.message.chat_id}"
+    db_item_id = QUIZ_ID_TEMPLATE.format(update.message.chat_id)
     db.set(db_item_id, new_question["answer"])
     send_message_with_keyboard(bot, update.message.chat_id,
         new_question["question"])
@@ -65,10 +67,16 @@ def handle_new_question_request(bot, update, db, quiz):
 
 @exception_handler
 def handle_solution_attempt(bot, update, db, quiz):
-    quiz_item = db.get(f"tg_{update.message.chat_id}")
+    quiz_item = db.get(QUIZ_ID_TEMPLATE.format(update.message.chat_id))
     logger.debug(f"QUIZ ITEM GET:\n{quiz_item}")
 
     is_answer_true = validate_answer(quiz_item, update.message.text)
+    if is_answer_true:
+        old_score = int(db.get(SCORE_ID_TEMPLATE.format(
+            update.message.chat_id)) or 0)
+        db.set(SCORE_ID_TEMPLATE.format(update.message.chat_id), old_score + 1)
+        logger.debug(f'Add point to {update.message.chat_id}, old {old_score}')
+
     bot_message = (is_answer_true and CORRECT_ANSWER_RESPONSE or
         FAILED_ANSWER_RESPONSE)
 
@@ -77,16 +85,16 @@ def handle_solution_attempt(bot, update, db, quiz):
 
 
 @exception_handler
-def handle_my_points_request(bot, update):
-    #TODO
+def handle_my_points_request(bot, update, db):
+    score = db.get(SCORE_ID_TEMPLATE.format(update.message.chat_id))
     send_message_with_keyboard(bot, update.message.chat_id,
-        'Твой счёт 10 баллов')
+        f'Набрано баллов: {score}')
     return States.WAITING_FOR_CLICK
 
 
 @exception_handler
 def handle_give_up_request(bot, update, db, quiz):
-    quiz_item = db.get(f"tg_{update.message.chat_id}")
+    quiz_item = db.get(QUIZ_ID_TEMPLATE.format(update.message.chat_id))
     bot.send_message(chat_id=update.message.chat_id,
         text=f'Правильный ответ: {quiz_item}\nДавай попробуем еще!')
     return handle_new_question_request(bot, update, db, quiz)
@@ -109,8 +117,6 @@ def run_bot(bot_token, db_host, db_port, db_password, file_path='test.txt'):
     redis_db = redis.Redis(host=db_host, port=db_port, db=0,
         password=db_password, decode_responses=True)
     quiz = parse_questions(file_path)
-    if not validate_db_connection:
-        return
     updater = Updater(bot_token)
     dp = updater.dispatcher
     conv_handler = ConversationHandler(
@@ -125,7 +131,11 @@ def run_bot(bot_token, db_host, db_port, db_password, file_path='test.txt'):
                     )
                 ),
                 RegexHandler(re.compile(r'^Мой счёт$', re.IGNORECASE),
-                    handle_my_points_request),
+                    partial(
+                        handle_my_points_request,
+                        db=redis_db,
+                    )
+                ),
             ],
             States.ANSWER: [
                 RegexHandler(re.compile(r'^Сдаться$', re.IGNORECASE),
