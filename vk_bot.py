@@ -100,30 +100,30 @@ def run_bot(token, db_host, db_port, db_password, file_path='test.txt'):
     longpoll = VkLongPoll(vk_session)
 
     for event in longpoll.listen():
-        if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-            state = get_user_state(event, vk, redis_db) or States.START
-            logger.debug(f'Current status for {event.user_id} is {state}')
-            event_text = event.text.lower().strip()
+        if not (event.type == VkEventType.MESSAGE_NEW and event.to_me):
+            continue
 
-            if state == States.START:
-                state = start_quiz(event, vk)
-                save_user_state(event, vk, redis_db, state)
-                continue
-            if event_text == 'стоп':
-                state = stop_quiz(event, vk, redis_db)
-            elif event_text == 'новый вопрос' and state == States.WAITING_FOR_CLICK:
-                logger.debug('New question button is clicked')
-                state = handle_new_question_request(event, vk, redis_db, quiz)
-            elif event_text == 'мой счёт' and state == States.WAITING_FOR_CLICK:
-                state = handle_my_points_request(event, vk, redis_db)
-            elif state == States.WAITING_FOR_CLICK:
-                state = handle_unrecognized_button_name(event, vk)
-            elif event_text == 'сдаться' and state == States.ANSWER:
-                state = handle_give_up_request(event, vk, redis_db, quiz)
-            elif state == States.ANSWER:
-                state = handle_solution_attempt(event, vk, redis_db, quiz)
+        state = get_user_state(event, vk, redis_db) or States.START
+        logger.debug(f'Current status for {event.user_id} is {state}')
+        event_text = event.text.lower().strip()
 
-            save_user_state(event, vk, redis_db, state)
+        if state == States.START:
+            state = start_quiz(event, vk)
+        elif event_text == 'стоп':
+            state = stop_quiz(event, vk, redis_db)
+        elif event_text == 'новый вопрос' and state == States.WAITING_FOR_CLICK:
+            logger.debug('New question button is clicked')
+            state = handle_new_question_request(event, vk, redis_db, quiz)
+        elif event_text == 'мой счёт' and state == States.WAITING_FOR_CLICK:
+            state = handle_my_points_request(event, vk, redis_db)
+        elif state == States.WAITING_FOR_CLICK:
+            state = handle_unrecognized_button_name(event, vk)
+        elif event_text == 'сдаться' and state == States.ANSWER:
+            state = handle_give_up_request(event, vk, redis_db, quiz)
+        elif state == States.ANSWER:
+            state = handle_solution_attempt(event, vk, redis_db, quiz)
+
+        save_user_state(event, vk, redis_db, state)
 
 
 def start_quiz(event, vk):
