@@ -100,7 +100,7 @@ def run_bot(token, db_host, db_port, db_password, file_path='test.txt'):
 
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-            state = (get_user_state(event, vk, redis_db) or States.START)
+            state = get_user_state(event, vk, redis_db) or States.START
             logger.debug(f'Current status for {event.user_id} is {state}')
             event_text = event.text.lower().strip()
 
