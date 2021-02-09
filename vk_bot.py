@@ -23,9 +23,9 @@ SCORE_ID_TEMPLATE = 'vk_{}_score'
 logger = logging.getLogger('quiz_bot_logger')
 
 
-def exception_handler(func):
+def handle_redis_connection_error(func):
 
-    def inner_function(event, vk, *args, **kwargs):
+    def run_inner_function(event, vk, *args, **kwargs):
         try:
             return func(event, vk, *args, **kwargs)
         except redis.exceptions.ConnectionError as error:
@@ -36,7 +36,7 @@ def exception_handler(func):
                 random_id=get_random_id()
             )
 
-    return inner_function
+    return run_inner_function
 
 
 def send_keyboard(event, vk, message, state=States.WAITING_FOR_CLICK):
@@ -71,14 +71,14 @@ def create_keyboard(state):
     return keyboard
 
 
-@exception_handler
+@handle_redis_connection_error
 def save_user_state(event, vk, db, new_state):
     db.set(STATE_ID_TEMPLATE.format(event.user_id), new_state.value)
     logger.debug(f'VK user {event.user_id} state {new_state} is saved with key '
         f'{STATE_ID_TEMPLATE.format(event.user_id)}')
 
 
-@exception_handler
+@handle_redis_connection_error
 def get_user_state(event, vk, db):
     state_value = db.get(STATE_ID_TEMPLATE.format(event.user_id))
     if not state_value:
@@ -146,7 +146,7 @@ def handle_unrecognized_button_name(event, vk):
     return new_state
 
 
-@exception_handler
+@handle_redis_connection_error
 def handle_solution_attempt(event, vk, db, quiz):
     quiz_item = db.get(QUIZ_ID_TEMPLATE.format(event.user_id))
     logger.debug(f"QUIZ ITEM GET:\n{quiz_item}")
@@ -165,7 +165,7 @@ def handle_solution_attempt(event, vk, db, quiz):
     return new_state
 
 
-@exception_handler
+@handle_redis_connection_error
 def handle_my_points_request(event, vk, db):
     new_state = States.WAITING_FOR_CLICK
     score = db.get(SCORE_ID_TEMPLATE.format(event.user_id))
@@ -174,7 +174,7 @@ def handle_my_points_request(event, vk, db):
     return new_state
 
 
-@exception_handler
+@handle_redis_connection_error
 def handle_give_up_request(event, vk, db, quiz):
     quiz_item = db.get(QUIZ_ID_TEMPLATE.format(event.user_id))
     vk.messages.send(
@@ -186,7 +186,7 @@ def handle_give_up_request(event, vk, db, quiz):
     return handle_new_question_request(event, vk, db, quiz)
 
 
-@exception_handler
+@handle_redis_connection_error
 def handle_new_question_request(event, vk, db, quiz):
     new_question = get_random_question(quiz)
     new_state = States.ANSWER

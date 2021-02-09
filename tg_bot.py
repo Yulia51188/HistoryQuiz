@@ -26,9 +26,9 @@ QUIZ_ID_TEMPLATE = 'tg_{}_quiz'
 SCORE_ID_TEMPLATE = 'tg_{}_score'
 
 
-def exception_handler(func):
+def handle_redis_connection_error(func):
 
-    def inner_function(bot, update, *args, **kwargs):
+    def run_inner_function(bot, update, *args, **kwargs):
         try:
             return func(bot, update, *args, **kwargs)
         except redis.exceptions.ConnectionError as error:
@@ -36,7 +36,7 @@ def exception_handler(func):
             send_message_with_keyboard(bot, update.message.chat_id,
                 'Извините, викторина временно недоступна!')
 
-    return inner_function
+    return run_inner_function
 
 
 def start(bot, update):
@@ -54,7 +54,7 @@ def handle_error(update, context, error):
     logger.error('Update "%s" caused error "%s"', update, error)
 
 
-@exception_handler
+@handle_redis_connection_error
 def handle_new_question_request(bot, update, db, quiz):
     new_question = get_random_question(quiz)
     db_item_id = QUIZ_ID_TEMPLATE.format(update.message.chat_id)
@@ -65,7 +65,7 @@ def handle_new_question_request(bot, update, db, quiz):
     return States.ANSWER
 
 
-@exception_handler
+@handle_redis_connection_error
 def handle_solution_attempt(bot, update, db, quiz):
     quiz_item = db.get(QUIZ_ID_TEMPLATE.format(update.message.chat_id))
     logger.debug(f"QUIZ ITEM GET:\n{quiz_item}")
@@ -84,7 +84,7 @@ def handle_solution_attempt(bot, update, db, quiz):
     return is_answer_true and States.WAITING_FOR_CLICK or States.ANSWER
 
 
-@exception_handler
+@handle_redis_connection_error
 def handle_my_points_request(bot, update, db):
     score = db.get(SCORE_ID_TEMPLATE.format(update.message.chat_id))
     send_message_with_keyboard(bot, update.message.chat_id,
@@ -92,7 +92,7 @@ def handle_my_points_request(bot, update, db):
     return States.WAITING_FOR_CLICK
 
 
-@exception_handler
+@handle_redis_connection_error
 def handle_give_up_request(bot, update, db, quiz):
     quiz_item = db.get(QUIZ_ID_TEMPLATE.format(update.message.chat_id))
     bot.send_message(chat_id=update.message.chat_id,
