@@ -73,19 +73,20 @@ def create_keyboard(state):
 
 @handle_redis_connection_error
 def save_user_state(event, vk, db, new_state):
-    db.set(STATE_ID_TEMPLATE.format(event.user_id), new_state.value)
+    state_db_key = STATE_ID_TEMPLATE.format(event.user_id)
+    db.set(state_db_key, new_state.value)
     logger.debug(f'VK user {event.user_id} state {new_state} is saved with key '
-        f'{STATE_ID_TEMPLATE.format(event.user_id)}')
+        f'{state_db_key}')
 
 
 @handle_redis_connection_error
 def get_user_state(event, vk, db):
-    state_value = db.get(STATE_ID_TEMPLATE.format(event.user_id))
+    state_db_key = STATE_ID_TEMPLATE.format(event.user_id)
+    state_value = db.get(state_db_key)
     if not state_value:
         return
     state = States(int(state_value))
-    logger.debug(f'VK user state {state}={state_value} is got by key '
-        f'{STATE_ID_TEMPLATE.format(event.user_id)}')
+    logger.debug(f'VK user state {state} is got by key {state_db_key}')
     return state
 
 
@@ -153,8 +154,9 @@ def handle_solution_attempt(event, vk, db, quiz):
 
     is_answer_true = validate_answer(quiz_item, event.text)
     if is_answer_true:
-        old_score = int(db.get(SCORE_ID_TEMPLATE.format(event.user_id)) or 0)
-        db.set(SCORE_ID_TEMPLATE.format(event.user_id), old_score + 1)
+        score_db_key = SCORE_ID_TEMPLATE.format(event.user_id)
+        old_score = int(db.get(score_db_key) or 0)
+        db.set(score_db_key, old_score + 1)
         logger.debug(f'Add point to {event.user_id}, old is {old_score}')
 
     bot_message = (is_answer_true and CORRECT_ANSWER_RESPONSE or
@@ -190,10 +192,10 @@ def handle_give_up_request(event, vk, db, quiz):
 def handle_new_question_request(event, vk, db, quiz):
     new_question = get_random_question(quiz)
     new_state = States.ANSWER
-    db_item_id = QUIZ_ID_TEMPLATE.format(event.user_id)
-    db.set(db_item_id, new_question["answer"])
+    quiz_db_key = QUIZ_ID_TEMPLATE.format(event.user_id)
+    db.set(quiz_db_key, new_question["answer"])
     send_keyboard(event, vk, new_question["question"], new_state)
-    logger.info(f"{db_item_id}: ANSWER:\n{db.get(db_item_id)}")
+    logger.info(f"{quiz_db_key}: ANSWER:\n{new_question['answer']}")
     return new_state
 
 

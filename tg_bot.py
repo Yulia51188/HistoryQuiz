@@ -57,11 +57,11 @@ def handle_error(update, context, error):
 @handle_redis_connection_error
 def handle_new_question_request(bot, update, db, quiz):
     new_question = get_random_question(quiz)
-    db_item_id = QUIZ_ID_TEMPLATE.format(update.message.chat_id)
-    db.set(db_item_id, new_question["answer"])
+    quiz_db_key = QUIZ_ID_TEMPLATE.format(update.message.chat_id)
+    db.set(quiz_db_key, new_question["answer"])
     send_message_with_keyboard(bot, update.message.chat_id,
         new_question["question"])
-    logger.info(f"{db_item_id}: ANSWER:\n{db.get(db_item_id)}")
+    logger.info(f"{quiz_db_key}: ANSWER:\n{db.get(new_question['answer'])}")
     return States.ANSWER
 
 
@@ -72,9 +72,9 @@ def handle_solution_attempt(bot, update, db, quiz):
 
     is_answer_true = validate_answer(quiz_item, update.message.text)
     if is_answer_true:
-        old_score = int(db.get(SCORE_ID_TEMPLATE.format(
-            update.message.chat_id)) or 0)
-        db.set(SCORE_ID_TEMPLATE.format(update.message.chat_id), old_score + 1)
+        score_db_key = SCORE_ID_TEMPLATE.format(update.message.chat_id)
+        old_score = int(db.get(score_db_key) or 0)
+        db.set(score_db_key, old_score + 1)
         logger.debug(f'Add point to {update.message.chat_id}, old {old_score}')
 
     bot_message = (is_answer_true and CORRECT_ANSWER_RESPONSE or
