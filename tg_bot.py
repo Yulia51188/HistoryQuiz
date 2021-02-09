@@ -61,7 +61,7 @@ def handle_new_question_request(bot, update, db, quiz):
     db.set(quiz_db_key, new_question["answer"])
     send_message_with_keyboard(bot, update.message.chat_id,
         new_question["question"])
-    logger.info(f"{quiz_db_key}: ANSWER:\n{db.get(new_question['answer'])}")
+    logger.info(f"{quiz_db_key}: ANSWER:\n{new_question['answer']}")
     return States.ANSWER
 
 
